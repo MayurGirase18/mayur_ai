@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 from groq import Groq
 from pydantic import BaseModel, ValidationError
 
+
 env_path = Path(__file__).resolve().parents[2] / ".env"
 load_dotenv(dotenv_path = env_path)
 
@@ -26,6 +27,7 @@ if not my_api_key:
 
 client = Groq(api_key=my_api_key)
 
+# Define Expected output structure
 class Ticket(BaseModel):
     name: str
     email: str
@@ -33,10 +35,12 @@ class Ticket(BaseModel):
     priority: str
     summary: str
 
-type(Ticket)        # pydantic._internal._model_construction.ModelMetaclass
+type(Ticket)        # pydantic._internal._model_construction.ModelMetaclass (Pydantic class)
+
 
 schema = Ticket.model_json_schema()
 type(schema)        # dict
+
 
 user_text = """Hi, my name is Mayur.
 My email is mayur@gmail.com.
@@ -61,6 +65,9 @@ Your output must follow this schema:
 {json.dumps(schema, indent=2)}
 """
 
+# {json.dumps(schema, indent=2)} used for python dict ---> json formatted string
+
+# LLM call
 response = client.chat.completions.create(
     model = "openai/gpt-oss-120b",
 
@@ -82,11 +89,14 @@ response = client.chat.completions.create(
 )
 
 
+# LLM output in json string format
 raw_output = response.choices[0].message.content
 print(f"{' Raw Output only ':-^30}")
 print(raw_output)
 type(raw_output)        # str
 
+
+# json string ---> python dictionary
 try:
     data = json.loads(raw_output)
 
@@ -95,6 +105,8 @@ except json.JSONDecodeError:
 
 type(data)              # dict
 
+
+# Pydantic Validaion
 try:
     ticket = Ticket.model_validate(data)
 
@@ -102,7 +114,7 @@ except ValidationError as error:
     print("\nValidation failed:")
     print("Error: ", error)
 
-type(ticket)            # __main__.Ticket
+type(ticket)            # __main__.Ticket or Ticket object (Validated Pydantic object)
 
 print(f"\n{' Ticket ':=^40}")
 print("Name:", ticket.name)
@@ -111,6 +123,8 @@ print("Category:", ticket.category)
 print("Priority:", ticket.priority)
 print("Summary:", ticket.summary)
 
+
+# Pydantic object ---> Json
 print(f"\n{' Final JSON ':-^20}")
 print(ticket.model_dump_json(indent=2))
 type(ticket.model_dump_json(indent=2))      # str
