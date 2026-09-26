@@ -33,7 +33,10 @@ class Ticket(BaseModel):
     priority: str
     summary: str
 
+type(Ticket)        # pydantic._internal._model_construction.ModelMetaclass
+
 schema = Ticket.model_json_schema()
+type(schema)        # dict
 
 user_text = """Hi, my name is Mayur.
 My email is mayur@gmail.com.
@@ -81,3 +84,21 @@ response = client.chat.completions.create(
 
 raw_output = response.choices[0].message.content
 print(raw_output)
+type(raw_output)        # str
+
+data = json.loads(raw_output)
+type(data)              # dict
+
+ticket = Ticket.model_validate(data)
+type(ticket)            # __main__.Ticket
+
+print(f"{' Ticket ':=^40}")
+print("Name:", ticket.name)
+print("Email:", ticket.email)
+print("Category:", ticket.category)
+print("Priority:", ticket.priority)
+print("Summary:", ticket.summary)
+
+print(f"{' Final JSON ':-^20}")
+print(ticket.model_dump_json(indent=2))
+type(ticket.model_dump_json(indent=2))      # str
