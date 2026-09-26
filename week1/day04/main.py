@@ -83,22 +83,34 @@ response = client.chat.completions.create(
 
 
 raw_output = response.choices[0].message.content
+print(f"{' Raw Output only ':-^30}")
 print(raw_output)
 type(raw_output)        # str
 
-data = json.loads(raw_output)
+try:
+    data = json.loads(raw_output)
+
+except json.JSONDecodeError:
+    print("\nInvalid JSON returned by LLM.")
+
 type(data)              # dict
 
-ticket = Ticket.model_validate(data)
+try:
+    ticket = Ticket.model_validate(data)
+
+except ValidationError as error:
+    print("\nValidation failed:")
+    print("Error: ", error)
+
 type(ticket)            # __main__.Ticket
 
-print(f"{' Ticket ':=^40}")
+print(f"\n{' Ticket ':=^40}")
 print("Name:", ticket.name)
 print("Email:", ticket.email)
 print("Category:", ticket.category)
 print("Priority:", ticket.priority)
 print("Summary:", ticket.summary)
 
-print(f"{' Final JSON ':-^20}")
+print(f"\n{' Final JSON ':-^20}")
 print(ticket.model_dump_json(indent=2))
 type(ticket.model_dump_json(indent=2))      # str
